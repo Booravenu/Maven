@@ -1,22 +1,35 @@
-steps:
-  - task: UseJavaVersion@1
-    inputs:
-      version: '17'
-      jdkArchitecture: 'x64'
-    displayName: 'Set Up JDK 17'
+name: Java CI Pipeline
 
-  - checkout: self
-    displayName: 'Checkout Code'
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
-  - task: Cache@2
-    inputs:
-      key: 'maven | "$(Agent.OS)" | **/pom.xml'
-      path: $(MAVEN_CACHE_FOLDER)
-      cacheHitVar: CACHE_RESTORED
-    displayName: 'Cache Maven Dependencies'
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-  - script: mvn clean package
-    displayName: 'Build with Maven'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-  - script: mvn test -Dsurefire.useSystemClassLoader=false -Dsurefire.forkCount=1 -X
-    displayName: 'Run Tests with Debugging'
+      - name: Set Up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+
+      - name: Cache Maven Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            maven-${{ runner.os }}-
+
+      - name: Set Java Memory Limits
+        run
