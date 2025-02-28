@@ -1,0 +1,22 @@
+steps:
+  - task: UseJavaVersion@1
+    inputs:
+      version: '17'
+      jdkArchitecture: 'x64'
+    displayName: 'Set Up JDK 17'
+
+  - checkout: self
+    displayName: 'Checkout Code'
+
+  - task: Cache@2
+    inputs:
+      key: 'maven | "$(Agent.OS)" | **/pom.xml'
+      path: $(MAVEN_CACHE_FOLDER)
+      cacheHitVar: CACHE_RESTORED
+    displayName: 'Cache Maven Dependencies'
+
+  - script: mvn clean package
+    displayName: 'Build with Maven'
+
+  - script: mvn test -Dsurefire.useSystemClassLoader=false -Dsurefire.forkCount=1 -X
+    displayName: 'Run Tests with Debugging'
