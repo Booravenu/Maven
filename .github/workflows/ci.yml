@@ -1,30 +1,22 @@
-name: Java CI Pipeline
+steps:
+  - task: UseJavaVersion@1
+    inputs:
+      version: '17'
+      jdkArchitecture: 'x64'
+    displayName: 'Set Up JDK 17'
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  - checkout: self
+    displayName: 'Checkout Code'
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+  - task: Cache@2
+    inputs:
+      key: 'maven | "$(Agent.OS)" | **/pom.xml'
+      path: $(MAVEN_CACHE_FOLDER)
+      cacheHitVar: CACHE_RESTORED
+    displayName: 'Cache Maven Dependencies'
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+  - script: mvn clean package
+    displayName: 'Build with Maven'
 
-      - name: Set Up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin' # Use Temurin JDK (AdoptOpenJDK)
-          java-version: '17'
-          cache: 'maven' # Cache Maven dependencies
-
-      - name: Build with Maven
-        run: mvn clean package
-
-      - name: Run Tests
-        run: mvn test
+  - script: mvn test -Dsurefire.useSystemClassLoader=false -Dsurefire.forkCount=1 -X
+    displayName: 'Run Tests with Debugging'
