@@ -31,12 +31,5 @@ jobs:
           restore-keys: |
             maven-${{ runner.os }}-
 
-      - name: Upgrade Maven Surefire Plugin (Fixes Fork Issue)
-        run: |
-          sed -i '/<artifactId>maven-surefire-plugin<\/artifactId>/{n;s|<version>.*</version>|<version>3.1.2</version>|}' pom.xml
-
-      - name: Build with Maven
-        run: mvn clean package
-
-      - name: Run Tests (Fix Fork Issue)
-        run: mvn test -Dsurefire.forkCount=1 -Dsurefire.memory=1024m -X
+      - name: Set Java Memory Limits
+        run
