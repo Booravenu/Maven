@@ -19,7 +19,7 @@ jobs:
       - name: Set Up JDK 17
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin' # Use Temurin JDK (AdoptOpenJDK)
+          distribution: 'temurin'
           java-version: '17'
           cache: 'maven'
 
@@ -31,8 +31,12 @@ jobs:
           restore-keys: |
             maven-${{ runner.os }}-
 
+      - name: Upgrade Maven Surefire Plugin (Fixes Fork Issue)
+        run: |
+          sed -i '/<artifactId>maven-surefire-plugin<\/artifactId>/{n;s|<version>.*</version>|<version>3.1.2</version>|}' pom.xml
+
       - name: Build with Maven
         run: mvn clean package
 
-      - name: Run Tests
-        run: mvn test -Dsurefire.useSystemClassLoader=false -Dsurefire.forkCount=1 -X
+      - name: Run Tests (Fix Fork Issue)
+        run: mvn test -Dsurefire.forkCount=1 -Dsurefire.memory=1024m -X
